@@ -2,7 +2,7 @@
   "name": "shopeepay-api-gateway",
   "version": "1.0.0",
   "description": "Gateway API pembayaran QRIS (Node.js + Express + database.json) yang bisa berjalan di Vercel, dengan adapter provider yang aman.",
-  "main": "src/app.js",
+  "main": "api/index.js",
   "private": true,
   "license": "UNLICENSED",
   "engines": {

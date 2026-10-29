@@ -169,7 +169,29 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('unhandledRejection', (reason) => logger.error('unhandledRejection', { error: reason }));
 
-module.exports = { createApp, start };
+// Ekspor utama = handler (req, res) supaya Vercel (yang otomatis mendeteksi src/app.js sebagai
+// entry Express) mendapat fungsi yang valid. createApp/start tetap tersedia sebagai properti.
+let lazyApp = null;
+let lazyError = null;
+function handler(req, res) {
+  if (!lazyApp && !lazyError) {
+    try {
+      config.validate();
+      lazyApp = createApp();
+    } catch (err) {
+      lazyError = err;
+    }
+  }
+  if (lazyError) {
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ success: false, error: { code: 'CONFIG_ERROR', message: lazyError.message } }));
+  }
+  return lazyApp(req, res);
+}
+handler.createApp = createApp;
+handler.start = start;
+module.exports = handler;
 
 if (require.main === module) {
   start().catch((err) => {
